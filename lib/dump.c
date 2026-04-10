@@ -106,7 +106,7 @@ dump_init(struct pci_access *a)
 	      if (i >= dd->allocated)	/* Need to re-allocate the buffer */
 		{
 		  dump_alloc_data(dev, 4096);
-		  memcpy(((struct dump_data *) dev->aux)->data, dd->data, 256);
+      memmove(((struct dump_data *) dev->aux)->data, dd->data, 256);
 		  pci_mfree(dd);
 		  dd = dev->aux;
 		}
