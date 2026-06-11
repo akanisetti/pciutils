@@ -91,28 +91,31 @@ dump_init(struct pci_access *a)
 	dev = NULL;
       else if (dev &&
 	       (dump_validate(buf, "##: ") || dump_validate(buf, "###: ")) &&
-	       sscanf(buf, "%x: ", &i) == 1)
+         sscanf(buf, "%x: ", &i) == 1)
 	{
 	  struct dump_data *dd = dev->aux;
+    unsigned int off = (i >= 0) ? (unsigned int)i : 0;
+    unsigned int val;
 	  z = strchr(buf, ' ') + 1;
 	  while (isxdigit(z[0]) && isxdigit(z[1]) && (!z[2] || z[2] == ' ') &&
-		 sscanf(z, "%x", &j) == 1 && j < 256)
+     sscanf(z, "%x", &val) == 1 && val < 256)
 	    {
-	      if (i >= 4096)
+        if (off >= 4096)
 		{
 		  fclose(f);
 		  a->error("dump: At most 4096 bytes of config space are supported");
 		}
-	      if (i >= dd->allocated)	/* Need to re-allocate the buffer */
+        if ((int)off >= dd->allocated)	/* Need to re-allocate the buffer */
 		{
 		  dump_alloc_data(dev, 4096);
 		  memcpy(((struct dump_data *) dev->aux)->data, dd->data, 256);
 		  pci_mfree(dd);
 		  dd = dev->aux;
 		}
-	      dd->data[i++] = j;
-	      if (i > dd->len)
-		dd->len = i;
+	      dd->data[off] = (byte) val;
+        off++;
+        if ((int)off > dd->len)
+    dd->len = (int) off;
 	      z += 2;
 	      if (*z)
 		z++;
